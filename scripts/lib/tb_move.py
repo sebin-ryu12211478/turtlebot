@@ -29,31 +29,33 @@ def move_until_obstacle(distance):
 
     move_cmd.linear.x = 0.125
     move_cmd.angular.z = 0.0
-
+    
     # 물체(벽)과의 거리가 0.22m일때까지 이동
     # Lidar에서 0.0000m가 나오는 경우도 있으므로 or로 예외처리
     if distance == None:
         return 1
 
-    if distance > 0.225:
+    if distance > 0.21:
         cmd_vel_pub.publish(move_cmd)
+
+        
         return 1
     else:
         stop()
-        rospy.loginfo("Moving Done.".format(distance))
+        rospy.loginfo("Moving Done.{}".format(distance))
         return 0
 
 
 def turn(angle, deg_correction=None, times=None):
     # 각도 보정
     if deg_correction != None:
-        if correct_angle(deg_correction, times) == 1:
+        if correct_horizontal_theta(deg_correction, times) == 1:
             return 1
 
-    rospy.loginfo("Turning...")
+    #rospy.loginfo("Turning...")
 
     # Angular velocity (rad/s)
-    angular_speed = 1.0
+    angular_speed = 0.5
 
     move_cmd.linear.x = 0.0
 
@@ -71,12 +73,12 @@ def turn(angle, deg_correction=None, times=None):
         #rate.sleep()
 
     stop()
-    rospy.loginfo("Turning Done.")
+    #rospy.loginfo("Turning Done.")
     return 0
 
 
 # 물체를 기준으로 각도 보정
-def correct_angle(deg_correction,times):
+def correct_horizontal_theta(deg_correction,times):
     if deg_correction != None:
         rospy.loginfo(deg_correction)
 
@@ -86,8 +88,11 @@ def correct_angle(deg_correction,times):
             if  abs(deg_correction[1]) < 0.1:
 
                 turn(deg_correction[0]/times)
+
                 return 1
 
         else:
             stop()
             return 0
+        
+    return 1

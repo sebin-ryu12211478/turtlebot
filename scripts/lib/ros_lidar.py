@@ -13,7 +13,7 @@ class LaserScanSubscriber:
         global PRESET_ANGLE
         global PRESET_ANGLE_LEN
 
-        self.bias = 0
+        self.difference_LR_distance = 0
 
         PRESET_ANGLE = [-10, -5, 0, 5, 10, 90, 180, 270]
         PRESET_ANGLE_LEN = len(PRESET_ANGLE)
@@ -46,22 +46,22 @@ class LaserScanSubscriber:
 
 
         # Print the distance
-
     def get_distance_ori(self):
         return self.distance
 
     def get_distance(self, deg=None):
         distance = self.get_distance_ori()
-        for i in distance:
-            if round(i,3) == 0.000 or i < 0.00001:
+        
+
+        if deg == None:
+            for i in distance:
+                if i < 0.00001:
+                    return None
+            return distance
+        else:
+            if distance[self.get_index(deg)] < 0.00001:
                 return None
-
-            if deg == None:
-                return distance
-
             return distance[self.get_index(deg)]
-
-        return None
 
 
 
@@ -71,13 +71,15 @@ class LaserScanSubscriber:
             return (length*np.cos(rad), length*np.sin(rad))
 
 
-    def get_errdata(self):
+    def get_horizontal_theta(self):
+        if self.get_distance(0) == None or self.get_distance(-10) == None or self.get_distance(10) == None:
+            return None
         if self.get_distance(0) > 0.5:
             return None
 
 
         distance_L = self.get_distance(-10)
-        distance_R = self.get_distance(10) + self.bias
+        distance_R = self.get_distance(10) + self.difference_LR_distance
         # +0.01 : 라이다 자체의 오차
 
         XL, YL =  self.get_position(-10, distance_L)
@@ -88,15 +90,15 @@ class LaserScanSubscriber:
         return [theta, diff]
 
 
-    def correct_bias(self):
+    def get_difference_LR_distance(self):
 
         distance_L = self.get_distance(-10)
         distance_R = self.get_distance(10)
         # +0.01 : 라이다 자체의 오차
 
-        BIAS = distance_L-distance_R
+        diff = distance_L-distance_R
 
-        return BIAS
+        return diff
 
     def get_index(self, deg):
         return PRESET_ANGLE.index(deg)

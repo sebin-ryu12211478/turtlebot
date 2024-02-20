@@ -21,7 +21,7 @@ if __name__ == '__main__':
         tb_move.init()
         tb_move.stop()
 
-        #client_sc = socket_teleop.Socket_Teleop()
+        client_sc = socket_teleop.Socket_Teleop()
 
         # Initialize LaserScanSubscriber
         lidar = ld.LaserScanSubscriber()
@@ -30,22 +30,26 @@ if __name__ == '__main__':
         rospy.sleep(1)  
         
         
-        input("PRESS ENTER : ")
-        sum = 0
-        for i in range(0,10):
-            tmp = lidar.correct_bias()
-            sum += tmp
-            rospy.sleep(0.1)  
-        lidar.bias = sum/10
-        input("PRESS ENTER : ")
+#        input("PRESS ENTER : ")
+#        sum = 0
+#        for i in range(0,10):
+#            tmp = lidar.get_difference_LR_distance()
+#            sum += tmp
+#            rospy.sleep(0.1)  
+#        lidar.difference_LR_distance = sum/10
+#        print(lidar.difference_LR_distance)
+#        input("PRESS ENTER : ")
+
+        lidar.difference_LR_distance = 0.004
         
-        state = 1
+        state = 0
         while 1:
 
-            #state = client_sc.receive()
+            state = client_sc.receive()
             #client_sc.debug_mode()
 
-            if state == 1:
+            if state == "100":
+                rospy.sleep(5)  
                 for deg in [90,90,180]:
                     avg = lidar.get_distance(0)
                     while tb_move.move_until_obstacle(avg):
@@ -53,26 +57,27 @@ if __name__ == '__main__':
                         continue
 
                     times = 1
-                    while tb_move.turn(deg, lidar.get_errdata(), times):
-                        times = times + 20
+                    while tb_move.turn(deg, lidar.get_horizontal_theta(), times):
+                        if times < 10000:
+                            times = times + 25
                         continue
 
-                state = 2
+                client_sc.send_cmd(101)
 
-                #client_sc.send_all(98)
-
-            if state == 2:
+            if state == "102":
+                rospy.sleep(5)  
                 for deg in [-90,-90,180]:
                     while tb_move.move_until_obstacle(lidar.get_distance(0)):
                         continue
 
                     times = 1
-                    while tb_move.turn(deg, lidar.get_errdata(), times):
-                        times = times + 20
+                    while tb_move.turn(deg, lidar.get_horizontal_theta(), times):
+                        if times < 10000:
+                            times = times + 25
                         continue
 
-                #client_sc.send_all(99)
-                #client_sc.close()
+                client_sc.send_cmd(103)
+                client_sc.close_connection()
                 state = 0
                 break
                     
