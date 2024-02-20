@@ -37,9 +37,8 @@ def move_until_obstacle(distance):
 
     if distance > 0.21:
         cmd_vel_pub.publish(move_cmd)
-
-        
         return 1
+
     else:
         stop()
         rospy.loginfo("Moving Done.{}".format(distance))
@@ -87,6 +86,7 @@ def correct_horizontal_theta(deg_correction,times):
         if abs(deg_correction[0]) > 0.0025:
             if  abs(deg_correction[1]) < 0.1:
 
+                # 반복하면서 회전 각도를 줄인다.
                 turn(deg_correction[0]/times)
 
                 return 1
