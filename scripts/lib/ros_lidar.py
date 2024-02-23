@@ -45,11 +45,8 @@ class LaserScanSubscriber:
             self.distance[i] = round(msg.ranges[index[i]],3)
 
 
-    def get_distance_ori(self):
-        return self.distance
-
     def get_distance(self, deg=None):
-        distance = self.get_distance_ori()
+        distance = self.distance
         
         if deg == None:
             for i in distance:
